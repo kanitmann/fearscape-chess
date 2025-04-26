@@ -1,0 +1,21 @@
+{
+  "name": "fearscape-chess",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "yarn workspace @fearscape-chess/client start",
+    "start:server": "yarn workspace @fearscape-chess/server start",
+    "build": "yarn workspace @fearscape-chess/client build",
+    "build:server": "yarn workspace @fearscape-chess/server build",
+    "dev": "concurrently \"yarn start:server\" \"yarn start\"",
+    "test": "yarn workspaces run test",
+    "lint": "yarn workspaces run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "typescript": "^4.9.5"
+  }
+}
