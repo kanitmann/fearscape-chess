@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Layout, Typography, message } from 'antd';
-import Chessboard from '../../components/game/Chessboard';
-import { useGameStore } from '../../store/gameStore';
-import useAuthStore from '../../store/authStore';
-import { GameService } from '../../services/gameService';
-import { getSocket, initSocket } from '../../services/socket';
+import Chessboard from '../components/game/Chessboard';
+import  useGameStore  from '../store/gameStore';
+import useAuthStore from '../store/authStore';
+import { GameService } from '../services/gameService';
+import { getSocket, initSocket } from '../services/socket';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;

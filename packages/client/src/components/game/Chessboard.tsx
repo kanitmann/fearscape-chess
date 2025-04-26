@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Chessboard } from 'react-chessboard';
-import { Chess } from 'chess.js';
+import { Chessboard as ReactChessboard } from 'react-chessboard';
+import { Chess, Square  } from 'chess.js';
 import { useParams } from 'react-router-dom';
 import { message, Modal, Button } from 'antd';
-import { useGameStore } from '../../store/gameStore';
-import { useAuthStore } from '../..//store/authStore';
-import { socket } from '@/services/socket';
-import { FogOfWarService } from '@/services/fogOfWarService';
-import { GameService } from '@/services/gameService';
+import useGameStore from '../../store/gameStore';
+import useAuthStore from '../../store/authStore';
+import { socket } from '../../services/socket';
+import { FogOfWarService } from '../../services/fogOfWarService';
+import { GameService } from '../../services/gameService';
 import { PromotionModal } from './PromotionModal';
 import { GameInfo } from './GameInfo';
 import { MoveHistory } from './MoveHistory';
@@ -37,7 +37,7 @@ const Chessboard: React.FC<ChessboardProps> = ({ gameMode, timeControl }) => {
   
   // Get stores
   const { gameId } = useParams<{ gameId: string }>();
-  const { currentUser } = useAuthStore();
+  const {  user: currentUser } = useAuthStore();
   const { 
     updateGameState, 
     opponentId, 
@@ -125,11 +125,11 @@ const Chessboard: React.FC<ChessboardProps> = ({ gameMode, timeControl }) => {
     });
     
     // Listen for fog reveals
-    socket.on('fog-reveal', (data) => {
-      if (data.gameId === gameId) {
-        handleFogReveal(data.squares);
-      }
-    });
+    // socket.on('fog-reveal', (data) => {
+    //   if (data.gameId === gameId) {
+    //     handleFogReveal(data.squares);
+    //   }
+    // });
     
     // Listen for game over events
     socket.on('game-over', (data) => {
@@ -336,7 +336,8 @@ const Chessboard: React.FC<ChessboardProps> = ({ gameMode, timeControl }) => {
     
     try {
       // Check if this is a pawn promotion move
-      const piece = gameRef.current.get(sourceSquare);
+      const piece = gameRef.current.get(sourceSquare as Square);
+
       const isPawnPromotion = 
         piece?.type === 'p' && 
         ((piece.color === 'w' && targetSquare[1] === '8') || 
@@ -606,16 +607,15 @@ const Chessboard: React.FC<ChessboardProps> = ({ gameMode, timeControl }) => {
     <div className="flex flex-col md:flex-row gap-4">
       <div className="w-full md:w-3/4">
         <div className="relative" style={{ aspectRatio: '1/1' }}>
-          <Chessboard
-            position={fen}
-            onPieceDrop={onDrop}
-            boardOrientation={playerColor}
-            customSquareStyles={{}}
-            customDarkSquareStyle={{ backgroundColor: '#b58863' }}
-            customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
-            customPieces={customPieces()}
-            customSquareRenderer={squareRenderer}
-          />
+        <ReactChessboard
+          position={fen}
+          onPieceDrop={onDrop}
+          boardOrientation={playerColor}
+          customSquareStyles={{}}
+          customDarkSquareStyle={{ backgroundColor: '#b58863' }}
+          customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
+          customPieces={customPieces()}
+        />
         </div>
       </div>
       

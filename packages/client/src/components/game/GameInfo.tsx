@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Badge } from 'antd';
-import { formatTime } from '@/utils/timeUtils';
+import { formatTime } from '../../utils/timeUtils';
 
 interface GameInfoProps {
   playerColor: 'white' | 'black';

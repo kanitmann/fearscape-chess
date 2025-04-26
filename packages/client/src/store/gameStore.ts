@@ -105,7 +105,8 @@ const useGameStore = create<GameStore>((set, get) => ({
     
     // Set up socket event listeners if socket exists
     if (get().socket) {
-      setupSocketListeners(get().socket, get, set);
+      setupSocketListeners(get().socket as Socket, get, set);
+
     }
   },
   
