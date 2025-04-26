@@ -19,7 +19,15 @@ interface GameStore {
   chess: Chess | null;
   playerColor: 'white' | 'black' | null;
   isMyTurn: boolean;
-  timeLeft: { white: number; black: number };
+  
+  // Timer properties needed by Chessboard component
+  playerTimer: number;
+  opponentTimer: number;
+  
+  // Opponent properties needed by Chessboard component
+  opponentId: string | null;
+  
+  // Game settings
   gameMode: 'standard' | 'blitz';
   
   // Socket connection
@@ -34,7 +42,12 @@ interface GameStore {
   resetGame: () => void;
   connectSocket: (socket: Socket) => void;
   disconnectSocket: () => void;
-  updateTimeLeft: (white: number, black: number) => void;
+  
+  // Chessboard component expected methods
+  updateGameState: (gameId: string) => void;
+  setOpponentId: (opponentId: string) => void;
+  updatePlayerTimer: (callback: (prev: number) => number) => void;
+  updateOpponentTimer: (callback: (prev: number) => number) => void;
   
   // Helpers
   isSquareVisible: (position: Position) => boolean;
@@ -57,7 +70,9 @@ const useGameStore = create<GameStore>((set, get) => ({
   chess: null,
   playerColor: null,
   isMyTurn: false,
-  timeLeft: { white: 0, black: 0 },
+  playerTimer: 600,  // 10 minutes default
+  opponentTimer: 600,
+  opponentId: null,
   gameMode: 'standard',
   socket: null,
   
@@ -65,15 +80,17 @@ const useGameStore = create<GameStore>((set, get) => ({
   initGame: (gameId, playerColor, gameMode) => {
     const chess = new Chess();
     
+    // Set default timers based on game mode
+    const defaultTime = gameMode === 'standard' ? 600 : 180;
+    
     set({
       gameId,
       chess,
       playerColor,
       isMyTurn: playerColor === 'white',
       gameMode,
-      timeLeft: gameMode === 'standard' 
-        ? { white: 600, black: 600 } // 10 minutes
-        : { white: 180, black: 180 }, // 3 minutes for blitz
+      playerTimer: defaultTime,
+      opponentTimer: defaultTime,
       gameState: {
         status: 'active',
         pieces: convertChessJsToInternalRepresentation(chess),
@@ -223,6 +240,9 @@ const useGameStore = create<GameStore>((set, get) => ({
       chess: null,
       playerColor: null,
       isMyTurn: false,
+      playerTimer: 600,
+      opponentTimer: 600,
+      opponentId: null,
     });
   },
   
@@ -243,10 +263,18 @@ const useGameStore = create<GameStore>((set, get) => ({
     set({ socket: null });
   },
   
-  // Update game timers
-  updateTimeLeft: (white, black) => {
-    set({ timeLeft: { white, black } });
-  },
+  // ADDED: Methods expected by the Chessboard component
+  updateGameState: (gameId) => set({ gameId }),
+  
+  setOpponentId: (opponentId) => set({ opponentId }),
+  
+  updatePlayerTimer: (callback) => set((state) => ({
+    playerTimer: callback(state.playerTimer)
+  })),
+  
+  updateOpponentTimer: (callback) => set((state) => ({
+    opponentTimer: callback(state.opponentTimer)
+  })),
   
   // Check if a square is visible through fog of war
   isSquareVisible: (position) => {
@@ -319,7 +347,19 @@ function setupSocketListeners(socket: Socket, get: () => GameStore, set: (state:
   });
   
   socket.on('game:timeUpdate', (data: { white: number, black: number }) => {
-    get().updateTimeLeft(data.white, data.black);
+    const { playerColor } = get();
+    
+    if (playerColor === 'white') {
+      set({
+        playerTimer: data.white,
+        opponentTimer: data.black
+      });
+    } else {
+      set({
+        playerTimer: data.black,
+        opponentTimer: data.white
+      });
+    }
   });
 }
 
